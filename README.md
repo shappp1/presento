@@ -18,23 +18,24 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 - PgUp - go to previous slide
 - PgDn - go to next slide
 - Ctrl+N - new slide
+- Ctrl+Delete - delete slide
 
 ### Text Box Operation
 - Arrow Keys - move active text box within slide
 - Tab - switch active text box
 
 ## Features
-### Required Features:
+### Required Features
 - [ ] Adding normal or bold text boxes
 - [ ] Deleting text boxes
 - [x] Moving text boxes anywhere within a slide
-- [ ] Resising text boxes in a slide
+- [ ] Resizing text boxes in a slide
 - [ ] At least a font for normal and bold text
 - [x] Adding slides
-- [ ] Deleting slides
+- [x] Deleting slides
 - [ ] Slideshow mode (button for start from beginning and start from current slide)
 - [ ] Saving and loading files
 
-### Extra Features (if time):
+### Extra Features (if time)
 - [ ] Changing slide background colour (probably really easy)
 - [ ] Adding images to slides

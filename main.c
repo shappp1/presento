@@ -89,6 +89,32 @@ void handle_events(Program *prog) {
                 }
               }
               break;
+            case SDLK_DELETE: // delete slide
+              if (prog->current_slide->index == 0 && prog->current_slide->next_slide != NULL) {
+                prog->first_slide = prog->current_slide->next_slide;
+                free(prog->current_slide->text_boxes);
+                free(prog->current_slide);
+                Slide *dec_index = prog->first_slide;
+                while (dec_index != NULL) {
+                  dec_index->index--;
+                  dec_index = dec_index->next_slide;
+                }
+                prog->current_slide = prog->first_slide;
+              } else if (prog->current_slide != 0) {
+                Slide *prev = prog->first_slide;
+                while (prev->index != prog->current_slide->index - 1)
+                  prev = prev->next_slide;
+                prev->next_slide = prog->current_slide->next_slide;
+                free(prog->current_slide->text_boxes);
+                free(prog->current_slide);
+                prog->current_slide = (prev->next_slide == NULL) ? prev : prev->next_slide;
+                prev = prev->next_slide;
+                while (prev != NULL) {
+                  prev->index--;
+                  prev = prev->next_slide;
+                }
+              }
+              break;
           }
         }
         switch (ev.key.keysym.sym) {
