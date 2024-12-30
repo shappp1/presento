@@ -1,12 +1,40 @@
 # Presento
+## Install
+### Requirements
+```
+mingw-w64 (on windows)
+make
+gcc
+SDL2
+SDL2_ttf
+```
+### Build
+Just run make. Will be built to build/main (or build/main.exe on windows)
 
+NOTE: I haven't tested this on windows yet; there will probably be errors with missing DLLs.
+
+## Implemented Controls
+### Slide Operation
+- PgUp - go to previous slide
+- PgDn - go to next slide
+- Ctrl+N - new slide
+
+### Text Box Operation
+- Arrow Keys - move active text box within slide
+- Tab - switch active text box
+
+## Features
 ### Required Features:
-- Adding and moving text boxes anywhere within a slide
-- At least a font for normal and bold text
-- Multiple slides (obviously)
-- Slideshow mode (button for start from beginning and start from current slide)
-- Saving and loading files
+- [ ] Adding normal or bold text boxes
+- [ ] Deleting text boxes
+- [x] Moving text boxes anywhere within a slide
+- [ ] Resising text boxes in a slide
+- [ ] At least a font for normal and bold text
+- [x] Adding slides
+- [ ] Deleting slides
+- [ ] Slideshow mode (button for start from beginning and start from current slide)
+- [ ] Saving and loading files
 
 ### Extra Features (if time):
-- Changing slide background colour (probably really easy)
-- Adding images to slides
+- [ ] Changing slide background colour (probably really easy)
+- [ ] Adding images to slides
