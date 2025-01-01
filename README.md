@@ -21,15 +21,21 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 - Ctrl+Delete - delete slide
 
 ### Text Box Operation
-- Arrow Keys - move active text box within slide
+- Arrow Keys - move active text box within slide*
+- Ctrl+Arrow Keys - resize active text box within slide*
 - Tab - switch active text box
+- Ctrl+T - new normal text box
+- Ctrl+B - new bold text box
+- Del - remove active text box
+
+*Holding Shift will speed up operation
 
 ## Features
 ### Required Features
-- [ ] Adding normal or bold text boxes
-- [ ] Deleting text boxes
+- [x] Adding normal or bold text boxes
+- [x] Deleting text boxes
 - [x] Moving text boxes anywhere within a slide
-- [ ] Resizing text boxes in a slide
+- [x] Resizing text boxes in a slide
 - [ ] At least a font for normal and bold text
 - [x] Adding slides
 - [x] Deleting slides
