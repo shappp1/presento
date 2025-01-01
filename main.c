@@ -4,29 +4,38 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "temp_vars.h"
-#include "main.h"
+#include "include/vars.h"
+#include "include/sdl_functions.h"
+#include "include/operations.h"
 
-#define ACTIVE_TEXT_BOX(prog) (prog).current_slide->text_boxes[(prog).current_slide->active_box_index]
+#define ACTIVE_TEXT_BOX(prog) (prog).active_slide->text_boxes[(prog).active_slide->active_box_index]
+
+void handle_events(Program *prog);
 
 int main(int argc, char** argv) {
   // Will add error handlers for these later
-  (void)SDL_Init(SDL_INIT_VIDEO);
-  SDL_Window *window = SDL_CreateWindow("Presento", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
-  SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+  SDL_Window *window;
+  SDL_Renderer *renderer;
+  if (setup_sdl(&window, &renderer) == -1) {
+    printf("%s\n", SDL_GetError());
+    return EXIT_FAILURE;
+  }
 
-  (void)TTF_Init();
-  TTF_Font *regular_font = TTF_OpenFont("fonts/calibri-regular.ttf", 20);
-  TTF_Font *bold_font = TTF_OpenFont("fonts/calibri-bold.ttf", 20);
+  TTF_Font *regular_font;
+  TTF_Font *bold_font;
+  if (setup_ttf(&regular_font, &bold_font) == -1) {
+    printf("%s\n", TTF_GetError());
+    return EXIT_FAILURE;
+  }
 
-  const SDL_Rect edit_slide_rect = {EDIT_SLIDE_BOX_X, EDIT_SLIDE_BOX_Y, EDIT_SLIDE_BOX_W, EDIT_SLIDE_BOX_H};
-  
-  Program program = {NULL, (Slide *)malloc(sizeof *program.first_slide), 1, false};
-  setup_slide(program.first_slide, 0, NULL);
-  program.current_slide = program.first_slide;
+  Program program;
+  setup_program(&program);
 
   Uint64 start_time, delta_time;
+  const SDL_Rect edit_slide_rect = {EDIT_SLIDE_BOX_X, EDIT_SLIDE_BOX_Y, EDIT_SLIDE_BOX_W, EDIT_SLIDE_BOX_H};
   const int mspf = 16; // 62.5 fps
+
+  SDL_StartTextInput();
   while (!program.should_quit) {
     start_time = SDL_GetTicks64();
     
@@ -40,7 +49,7 @@ int main(int argc, char** argv) {
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 
-    if (program.current_slide->text_box_count != 0) {
+    if (program.active_slide->text_box_count != 0) {
       SDL_Rect text_box_rect = ACTIVE_TEXT_BOX(program).dimensions;
       text_box_rect.x += EDIT_SLIDE_BOX_X;
       text_box_rect.y += EDIT_SLIDE_BOX_Y;
@@ -54,173 +63,84 @@ int main(int argc, char** argv) {
       SDL_Delay(mspf - delta_time);
     delta_time = SDL_GetTicks64() - start_time;
   }
+  SDL_StopTextInput();
 
   free_program(&program);
-
-  TTF_CloseFont(bold_font);
-  TTF_CloseFont(regular_font);
-  TTF_Quit();
-
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
-  return 0;
+  close_ttf(regular_font, bold_font);
+  close_sdl(window, renderer);
+  return EXIT_SUCCESS;
 }
 
 void handle_events(Program *prog) {
   SDL_Event ev;
   while (SDL_PollEvent(&ev)) {
-    switch (ev.type) {
-      case SDL_QUIT:
-        prog->should_quit = true;
-        break;
-      case SDL_KEYDOWN:
-        if (ev.key.keysym.mod & KMOD_CTRL) {
-          switch (ev.key.keysym.sym) { // CTRL + sym
-            case SDLK_n: // new slide
-              {
-                Slide *next = prog->current_slide->next_slide;
-                prog->current_slide->next_slide = (Slide *)malloc(sizeof *prog->current_slide->next_slide);
-                setup_slide(prog->current_slide->next_slide, prog->current_slide->index + 1, next);
-                prog->current_slide = prog->current_slide->next_slide;
-                while (next != NULL) {
-                  next->index++;
-                  next = next->next_slide;
-                }
-              }
-              break;
-            case SDLK_t:
-              if (prog->current_slide->text_box_count < 8) {
-                prog->current_slide->text_boxes[prog->current_slide->text_box_count++] = (TextBox){{0, 0, 50, 50}, {0}, false};
-                prog->current_slide->active_box_index = prog->current_slide->text_box_count - 1;
-              }
-              break;
-            case SDLK_b:
-              if (prog->current_slide->text_box_count < 8) {
-                prog->current_slide->text_boxes[prog->current_slide->text_box_count++] = (TextBox){{0, 0, 50, 50}, {0}, true};
-                prog->current_slide->active_box_index = prog->current_slide->text_box_count - 1;
-              }
-              break;
-            case SDLK_DELETE: // delete slide
-              if (prog->current_slide->index == 0 && prog->current_slide->next_slide != NULL) {
-                prog->first_slide = prog->current_slide->next_slide;
-                free(prog->current_slide->text_boxes);
-                free(prog->current_slide);
-                Slide *dec_index = prog->first_slide;
-                while (dec_index != NULL) {
-                  dec_index->index--;
-                  dec_index = dec_index->next_slide;
-                }
-                prog->current_slide = prog->first_slide;
-              } else if (prog->current_slide->index != 0) {
-                Slide *prev = prog->first_slide;
-                while (prev->index != prog->current_slide->index - 1)
-                  prev = prev->next_slide;
-                prev->next_slide = prog->current_slide->next_slide;
-                free(prog->current_slide->text_boxes);
-                free(prog->current_slide);
-                prog->current_slide = (prev->next_slide == NULL) ? prev : prev->next_slide;
-                prev = prev->next_slide;
-                while (prev != NULL) {
-                  prev->index--;
-                  prev = prev->next_slide;
-                }
-              }
-              break;
-            case SDLK_UP: // shrink active text box vertically
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.h -= (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.h < 1)
-                ACTIVE_TEXT_BOX(*prog).dimensions.h = 1;
-              break;
-            case SDLK_DOWN: // grow active text box vertically
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.h += (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.y + ACTIVE_TEXT_BOX(*prog).dimensions.h > EDIT_SLIDE_BOX_H)
-                ACTIVE_TEXT_BOX(*prog).dimensions.h = EDIT_SLIDE_BOX_H - ACTIVE_TEXT_BOX(*prog).dimensions.y;
-              break;
-            case SDLK_LEFT: // shrink active text box horizontally
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.w -= (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.w < 1)
-                ACTIVE_TEXT_BOX(*prog).dimensions.w = 1;
-              break;
-            case SDLK_RIGHT: // grow active text box horizontally
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.w += (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.x + ACTIVE_TEXT_BOX(*prog).dimensions.w > EDIT_SLIDE_BOX_W)
-                ACTIVE_TEXT_BOX(*prog).dimensions.w = EDIT_SLIDE_BOX_W - ACTIVE_TEXT_BOX(*prog).dimensions.x;
-              break;
-          }
-        } else {
-          switch (ev.key.keysym.sym) {
-            case SDLK_ESCAPE: // quit (probably remove)
-              push_quit();
-              break;
-            case SDLK_TAB: // switch active text box
-              if (prog->current_slide->text_box_count != 0) {
-                prog->current_slide->active_box_index = (prog->current_slide->active_box_index + 1) % prog->current_slide->text_box_count;
-              }
-              break;
-            case SDLK_DELETE: // delete active text box
-              if (prog->current_slide->text_box_count != 0) {
-                prog->current_slide->text_box_count--;
-                if (prog->current_slide->active_box_index == prog->current_slide->text_box_count) {
-                  prog->current_slide->active_box_index = 0;
-                } else for (int i = prog->current_slide->active_box_index; i < prog->current_slide->text_box_count; i++) {
-                  prog->current_slide->text_boxes[i] = prog->current_slide->text_boxes[i + 1];
-                }
-              }
-            case SDLK_PAGEUP: // prev slide
-              if (prog->current_slide->index != 0) {
-                int prev_slide_index = prog->current_slide->index - 1;
-                prog->current_slide = prog->first_slide;
-                while (prog->current_slide->index != prev_slide_index)
-                  prog->current_slide = prog->current_slide->next_slide;
-              }
-              break;
-            case SDLK_PAGEDOWN: // next slide
-              if (prog->current_slide->next_slide != NULL)
-                prog->current_slide = prog->current_slide->next_slide;
-              break;
-            case SDLK_UP: // move active text box up
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.y -= (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.y < 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.y = 0;
-              break;
-            case SDLK_DOWN: // move active text box down
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.y += (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.y + ACTIVE_TEXT_BOX(*prog).dimensions.h > EDIT_SLIDE_BOX_H)
-                ACTIVE_TEXT_BOX(*prog).dimensions.y = EDIT_SLIDE_BOX_H - ACTIVE_TEXT_BOX(*prog).dimensions.h;
-              break;
-            case SDLK_LEFT: // move active text box left
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.x -= (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.x < 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.x = 0;
-              break;
-            case SDLK_RIGHT: // move active text box right
-              if (prog->current_slide->text_box_count != 0)
-                ACTIVE_TEXT_BOX(*prog).dimensions.x += (SDL_GetModState() & KMOD_SHIFT) ? 10 : 1;
-              if (ACTIVE_TEXT_BOX(*prog).dimensions.x + ACTIVE_TEXT_BOX(*prog).dimensions.w > EDIT_SLIDE_BOX_W)
-                ACTIVE_TEXT_BOX(*prog).dimensions.x = EDIT_SLIDE_BOX_W - ACTIVE_TEXT_BOX(*prog).dimensions.w;
-              break;
-          }
+    if (ev.type == SDL_QUIT) {
+      prog->should_quit = true;
+    } else if (ev.type == SDL_KEYDOWN) {
+      if (ev.key.keysym.mod & KMOD_CTRL) {
+        switch (ev.key.keysym.sym) { // CTRL + sym
+          case SDLK_n:
+            new_slide(prog);
+            break;
+          case SDLK_t:
+            new_text_box(prog->active_slide, false);
+            break;
+          case SDLK_b:
+            new_text_box(prog->active_slide, true);
+            break;
+          case SDLK_DELETE:
+            delete_slide(prog);
+            break;
+          case SDLK_UP:
+            if (prog->active_slide->text_box_count != 0)
+              vert_shrink_text_box(&ACTIVE_TEXT_BOX(*prog));
+            break;
+          case SDLK_DOWN:
+            if (prog->active_slide->text_box_count != 0)
+              vert_grow_text_box(&ACTIVE_TEXT_BOX(*prog));
+            break;
+          case SDLK_LEFT:
+            if (prog->active_slide->text_box_count != 0)
+              hor_shrink_text_box(&ACTIVE_TEXT_BOX(*prog));
+            break;
+          case SDLK_RIGHT:
+            if (prog->active_slide->text_box_count != 0)
+              hor_grow_text_box(&ACTIVE_TEXT_BOX(*prog));
+            break;
         }
-        break;
+      } else {
+        switch (ev.key.keysym.sym) {
+          case SDLK_TAB:
+            switch_active_text_box(prog->active_slide);
+            break;
+          case SDLK_DELETE:
+            delete_text_box(prog->active_slide);
+            break;
+          case SDLK_PAGEUP:
+            prev_slide(prog);
+            break;
+          case SDLK_PAGEDOWN:
+            next_slide(prog);
+            break;
+          case SDLK_UP:
+            if (prog->active_slide->text_box_count != 0)
+              move_text_box_up(&ACTIVE_TEXT_BOX(*prog));
+            break;
+          case SDLK_DOWN:
+            if (prog->active_slide->text_box_count != 0)
+              move_text_box_down(&ACTIVE_TEXT_BOX(*prog));
+            break;
+          case SDLK_LEFT:
+            if (prog->active_slide->text_box_count != 0)
+              move_text_box_left(&ACTIVE_TEXT_BOX(*prog));
+            break;
+          case SDLK_RIGHT:
+            if (prog->active_slide->text_box_count != 0)
+              move_text_box_right(&ACTIVE_TEXT_BOX(*prog));
+            break;
+        }
+      }
     }
   }
 }
 
-void free_program(Program *prog) {
-  Slide *current_slide = prog->first_slide;
-  Slide *to_free;
-  while (current_slide->next_slide != NULL) {
-    free(current_slide->text_boxes);
-    to_free = current_slide;
-    current_slide = current_slide -> next_slide;
-    free(to_free);
-  }
-}
