@@ -110,6 +110,8 @@ void hor_grow_text_box(TextBox *box) {
     box->dimensions.w = EDIT_SLIDE_BOX_W - box->dimensions.x;
 }
 
+void handle_text_input(TextBox *box, const char *text);
+
 void setup_slide(Slide *slide, int index, Slide *next_slide) {
   slide->text_boxes = (TextBox *)malloc(8 * sizeof *slide->text_boxes);
   slide->index = index;

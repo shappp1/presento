@@ -19,6 +19,7 @@ void vert_grow_text_box(TextBox *box);
 void hor_shrink_text_box(TextBox *box);
 void hor_grow_text_box(TextBox *box);
 
+void handle_text_input(TextBox *box, const char *text);
 
 void setup_slide(Slide *slide, int index, Slide *next_slide);
 void setup_program(Program *prog);

@@ -12,7 +12,8 @@
 #define EDIT_SLIDE_BOX_W 800
 #define EDIT_SLIDE_BOX_H 450
 
-#define PTSIZE 20
+#define REGULAR_PTSIZE 30
+#define BOLD_PTSIZE 40
 
 typedef struct TextBox {
   SDL_Rect dimensions;
@@ -33,6 +34,7 @@ typedef struct Program {
   Slide *first_slide;
   int slide_count;
   bool should_quit;
+  bool slideshow_mode;
 } Program;
 
 #endif

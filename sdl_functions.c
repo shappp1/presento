@@ -20,11 +20,11 @@ int setup_ttf(TTF_Font **regular, TTF_Font **bold) {
   if (TTF_Init() == -1) {
     return -1;
   }
-  *regular = TTF_OpenFont("fonts/calibri-regular.ttf", PTSIZE);
+  *regular = TTF_OpenFont("fonts/calibri-regular.ttf", REGULAR_PTSIZE);
   if (*regular == NULL) {
     return -1;
   }
-  *bold = TTF_OpenFont("fonts/calibri-bold.ttf", PTSIZE);
+  *bold = TTF_OpenFont("fonts/calibri-bold.ttf", BOLD_PTSIZE);
   if (*bold == NULL) {
     TTF_CloseFont(*regular);
     return -1;
