@@ -103,6 +103,12 @@ void handle_events(Program *prog) {
   } else {
   if (ev.key.keysym.mod & KMOD_CTRL) {
   switch (ev.key.keysym.sym) { // CTRL + sym
+    case SDLK_PAGEUP:
+      move_slide_back(prog);
+      break;
+    case SDLK_PAGEDOWN:
+      move_slide_forward(prog);
+      break;
     case SDLK_n:
       new_slide(prog);
       break;
@@ -163,20 +169,13 @@ void handle_events(Program *prog) {
         move_text_box_right(&ACTIVE_TEXT_BOX(*prog));
       break;
     case SDLK_BACKSPACE:
-      if (strlen(ACTIVE_TEXT_BOX(*prog).text) != 0) {
-        int index = strlen(ACTIVE_TEXT_BOX(*prog).text) - 1;
-        if (ACTIVE_TEXT_BOX(*prog).text[index] & 0x80) {
-          index++;
-          while ((ACTIVE_TEXT_BOX(*prog).text[--index] & 0xC0) != 0xC0);
-        }
-        ACTIVE_TEXT_BOX(*prog).text[index] = '\0';
-      }
+      handle_backspace(ACTIVE_TEXT_BOX(*prog).text);
       break;
   }
   }
   }
   } else if (ev.type == SDL_TEXTINPUT) {
-    strcat(ACTIVE_TEXT_BOX(*prog).text, ev.text.text);
+    strncat(ACTIVE_TEXT_BOX(*prog).text, ev.text.text, TEXT_BUFFER_SIZE - strlen(ACTIVE_TEXT_BOX(*prog).text) - 1);
   }
   }
 }

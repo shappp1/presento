@@ -5,6 +5,8 @@
 
 void prev_slide(Program *prog);
 void next_slide(Program *prog);
+void move_slide_back(Program *prog);
+void move_slide_forward(Program *prog);
 void new_slide(Program *prog);
 void delete_slide(Program *prog);
 void switch_active_text_box(Slide *slide);
@@ -19,7 +21,7 @@ void vert_grow_text_box(TextBox *box);
 void hor_shrink_text_box(TextBox *box);
 void hor_grow_text_box(TextBox *box);
 
-void handle_text_input(TextBox *box, const char *text);
+void handle_backspace(char *text);
 
 void setup_slide(Slide *slide, int index, Slide *next_slide);
 void setup_program(Program *prog);

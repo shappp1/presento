@@ -17,6 +17,8 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 ### Slide Operation
 - PgUp - go to previous slide
 - PgDn - go to next slide
+- Ctrl+PgUp - swap current and previous slide
+- Ctrl+PgDn - swap current and next slide
 - Ctrl+N - new slide
 - Ctrl+Delete - delete slide
 
@@ -36,7 +38,7 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 - [x] Deleting text boxes
 - [x] Moving text boxes anywhere within a slide
 - [x] Resizing text boxes in a slide
-- [ ] At least a font for normal and bold text
+- [x] At least a font for normal and bold text
 - [x] Adding slides
 - [x] Deleting slides
 - [ ] Slideshow mode (button for start from beginning and start from current slide)

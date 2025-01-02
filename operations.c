@@ -12,6 +12,33 @@ void next_slide(Program *prog) {
   if (prog->active_slide->next_slide != NULL)
   prog->active_slide = prog->active_slide->next_slide;
 }
+void move_slide_back(Program *prog) {
+  if (prog->active_slide->index != 0) {
+    prev_slide(prog);
+    move_slide_forward(prog);
+    prev_slide(prog);
+  }
+}
+void move_slide_forward(Program *prog) {
+  if (prog->active_slide->next_slide != NULL) {
+    if (prog->active_slide->index == 0) {
+      prog->first_slide = prog->active_slide->next_slide;
+      prog->active_slide->next_slide = prog->active_slide->next_slide->next_slide;
+      prog->first_slide->next_slide = prog->active_slide;
+      prog->first_slide->index--;
+      prog->first_slide->next_slide->index++;
+    } else {
+      Slide *prev = prog->first_slide;
+      while (prev->index != prog->active_slide->index - 1)
+        prev = prev->next_slide;
+      prev->next_slide = prog->active_slide->next_slide;
+      prog->active_slide->next_slide = prog->active_slide->next_slide->next_slide;
+      prev->next_slide->next_slide = prog->active_slide;
+      prev->next_slide->index--;
+      prog->active_slide->index++;
+    }
+  }
+}
 void new_slide(Program *prog) {
   Slide *next = prog->active_slide->next_slide;
   prog->active_slide->next_slide = (Slide *)malloc(sizeof *prog->active_slide->next_slide);
@@ -110,7 +137,16 @@ void hor_grow_text_box(TextBox *box) {
     box->dimensions.w = EDIT_SLIDE_BOX_W - box->dimensions.x;
 }
 
-void handle_text_input(TextBox *box, const char *text);
+void handle_backspace(char *text) {
+  if (strlen(text) != 0) {
+    int index = strlen(text) - 1;
+    if (text[index] & 0x80) {
+      index++;
+      while ((text[--index] & 0xC0) != 0xC0);
+    }
+    text[index] = '\0';
+  }
+}
 
 void setup_slide(Slide *slide, int index, Slide *next_slide) {
   slide->text_boxes = (TextBox *)malloc(8 * sizeof *slide->text_boxes);

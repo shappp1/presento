@@ -15,9 +15,11 @@
 #define REGULAR_PTSIZE 30
 #define BOLD_PTSIZE 40
 
+#define TEXT_BUFFER_SIZE 256
+
 typedef struct TextBox {
   SDL_Rect dimensions;
-  char text[256]; // char count may change
+  char text[TEXT_BUFFER_SIZE]; // char count may change
   bool bold;
 } TextBox;
 
