@@ -32,6 +32,13 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 
 *Holding Shift will speed up operation
 
+### Slideshow Operation
+- Ctrl+P - start slideshow from current slide
+- Ctrl+Shift+P - start slideshow from first slide
+- Left (during slideshow) - go back one slide
+- Right/Space (during slideshow) - go forward one slide
+- Esc (during slideshow) - end slideshow
+
 ## Features
 ### Required Features
 - [x] Adding normal or bold text boxes
@@ -41,7 +48,7 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 - [x] At least a font for normal and bold text
 - [x] Adding slides
 - [x] Deleting slides
-- [ ] Slideshow mode (button for start from beginning and start from current slide)
+- [x] Slideshow mode (button for start from beginning and start from current slide)
 - [ ] Saving and loading files
 
 ### Extra Features (if time)

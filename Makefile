@@ -1,13 +1,19 @@
-.PHONY: windows linux
+SRC_DIR = src
+OBJ_DIR = obj
+SRC = $(wildcard $(SRC_DIR)/*.c)
+OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+OUT = build/presento
+LFLAGS = -lSDL2main -lSDL2 -lSDL2_ttf
 
-srcfiles = main.c sdl_functions.c operations.c
-builddir = build
+$(OUT): $(OBJ)
+	$(CC) -o $@ $^ $(LFLAGS)
 
-linux: $(builddir)/main
-windows: $(builddir)/main.exe
+$(OBJ): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR)
+	$(CC) -c -o $@ $<
 
-$(builddir)/main: $(srcfiles)
-	gcc -o $(builddir)/main $(srcfiles) -lSDL2main -lSDL2 -lSDL2_ttf
+$(OBJ_DIR):
+	mkdir $(OBJ_DIR)
 
-$(builddir)/main.exe: $(srcfiles)
-	x86_64-w64-mingw32-gcc -I/usr/x86_64-w64-mingw32/include/ -L/usr/x86_64-w64-mingw32/lib/ -o $(builddir)/main $(srcfiles) -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf
+.PHONY: clean
+clean:
+	rm -rf $(OBJ_DIR) $(OUT)

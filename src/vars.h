@@ -12,14 +12,19 @@
 #define EDIT_SLIDE_BOX_W 800
 #define EDIT_SLIDE_BOX_H 450
 
+#define SLIDESHOW_SCALE 1.6
+
+#define TEXT_BUFFER_SIZE 512
+
 #define REGULAR_PTSIZE 30
 #define BOLD_PTSIZE 40
 
-#define TEXT_BUFFER_SIZE 256
+#define REGULAR_FONT_PATH "fonts/calibri-regular.ttf"
+#define BOLD_FONT_PATH "fonts/calibri-bold.ttf"
 
-typedef struct TextBox {
-  SDL_Rect dimensions;
-  char text[TEXT_BUFFER_SIZE]; // char count may change
+typedef struct TextBox { 
+  int x, y, w, h;
+  char text[TEXT_BUFFER_SIZE];
   bool bold;
 } TextBox;
 
