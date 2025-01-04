@@ -24,6 +24,9 @@ void hor_grow_text_box(TextBox *box);
 void handle_enter(char *text);
 void handle_backspace(char *text);
 
+int save(Program *prog, const char *file_name);
+int load(Program *prog, const char *file_name);
+
 void setup_slide(Slide *slide, int index, Slide *next_slide);
 void setup_program(Program *prog);
 void free_program(Program *prog);

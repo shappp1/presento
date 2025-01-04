@@ -10,7 +10,7 @@
 
 #define ACTIVE_TEXT_BOX(prog) (prog).active_slide->text_boxes[(prog).active_slide->active_box_index]
 
-void handle_events(Program *prog);
+void handle_events(Program *prog, char *path);
 
 int main(int argc, char** argv) {
   // Will add error handlers for these later
@@ -40,11 +40,12 @@ int main(int argc, char** argv) {
   const SDL_Color BLACK = {0, 0, 0, SDL_ALPHA_OPAQUE};
   char slide_count_text[14], text_box_count_text[13], position_text[16], size_text[17];
   const char *controls_text = "Ctrl+S - save\nCtrl+L - load\nPgUp/PgDn - change slide\nCtrl+PgUp/PgDn - move slide\nCtrl+N - new slide\nCtrl+Delete - delete slide\nCtrl+P - slideshow (current)\nShift+Ctrl+P - slideshow (start)\nArrows - move text box*\nCtrl+Arrows - resize text box*\nTab - change active text box\nCtrl+T - new regular text box\nCtrl+B - new bold text box\nDel - delete active text box\n\n*Hold Shift to do faster";
+  char path[PATH_BUFFER_SIZE] = "";
   SDL_StartTextInput();
   while (!program.should_quit) {
     start_time = SDL_GetTicks64();
     
-    handle_events(&program);
+    handle_events(&program, path);
 
     if (program.slideshow_mode) {
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -82,6 +83,12 @@ int main(int argc, char** argv) {
         (void)write_text(renderer, regular_font, size_text, BLACK, EDIT_SLIDE_BOX_X + 500, 150);
       }
 
+      if (program.must_save || program.must_load) {
+        char path_input_text[PATH_BUFFER_SIZE + 6] = "Path: ";
+        strcat(path_input_text, path);
+        (void)write_text(renderer, regular_font, path_input_text, BLACK, EDIT_SLIDE_BOX_X + 20, 50);
+      }
+
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 
       if (program.active_slide->text_box_count != 0) {
@@ -110,13 +117,29 @@ int main(int argc, char** argv) {
   return EXIT_SUCCESS;
 }
 
-void handle_events(Program *prog) {
+void handle_events(Program *prog, char *path) {
   SDL_Event ev;
   while (SDL_PollEvent(&ev)) {
   if (ev.type == SDL_QUIT) {
     prog->should_quit = true;
   } else if (ev.type == SDL_KEYDOWN) {
-  if (prog->slideshow_mode) {
+  if (prog->must_save || prog->must_load) {
+  switch (ev.key.keysym.sym) {
+    case SDLK_RETURN:
+      if (prog->must_save)
+        save(prog, path);
+      else if (prog->must_load)
+        load(prog, path);
+    case SDLK_ESCAPE:
+      path[0] = '\0';
+      prog->must_save = false;
+      prog->must_load = false;
+      break;
+    case SDLK_BACKSPACE:
+      handle_backspace(path);
+      break;
+  }
+  } else if (prog->slideshow_mode) {
   switch (ev.key.keysym.sym) { // for when I implement this
     case SDLK_LEFT:
       prev_slide(prog);
@@ -170,6 +193,12 @@ void handle_events(Program *prog) {
       if (prog->active_slide->text_box_count != 0)
         hor_grow_text_box(&ACTIVE_TEXT_BOX(*prog));
       break;
+    case SDLK_s:
+      prog->must_save = true;
+      break;
+    case SDLK_l:
+      prog->must_load = true;
+      break;
   }
   } else {
   switch (ev.key.keysym.sym) {
@@ -211,7 +240,11 @@ void handle_events(Program *prog) {
   }
   }
   } else if (ev.type == SDL_TEXTINPUT && !prog->slideshow_mode) {
-    strncat(ACTIVE_TEXT_BOX(*prog).text, ev.text.text, TEXT_BUFFER_SIZE - strlen(ACTIVE_TEXT_BOX(*prog).text) - 1);
+    if (prog->must_save || prog->must_load) {
+      strncat(path, ev.text.text, PATH_BUFFER_SIZE - strlen(path) - 1);
+    } else {
+      strncat(ACTIVE_TEXT_BOX(*prog).text, ev.text.text, TEXT_BUFFER_SIZE - strlen(ACTIVE_TEXT_BOX(*prog).text) - 1);
+    }
   }
   }
 }

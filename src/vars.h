@@ -15,6 +15,7 @@
 #define SLIDESHOW_SCALE 1.6
 
 #define TEXT_BUFFER_SIZE 512
+#define PATH_BUFFER_SIZE 128
 
 #define REGULAR_PTSIZE 30
 #define BOLD_PTSIZE 40
@@ -42,6 +43,8 @@ typedef struct Program {
   int slide_count;
   bool should_quit;
   bool slideshow_mode;
+  bool must_save;
+  bool must_load;
 } Program;
 
 #endif

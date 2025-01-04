@@ -163,6 +163,85 @@ void handle_backspace(char *text) {
   }
 }
 
+int save(Program *prog, const char *file_name) {
+  FILE *file = fopen(file_name, "wb");
+  if (file == NULL)
+    return -1;
+
+  fwrite("\xC3\xE7\x2B", 1, 3, file);
+  fwrite(&prog->slide_count, 2, 1, file);
+
+  Slide *slide = prog->first_slide;
+  while (slide != NULL) {
+    fwrite(&slide->text_box_count, 1, 1, file);
+
+    for (int i = 0; i < slide->text_box_count; i++) {
+      fwrite(&slide->text_boxes[i].x, 2, 1, file);
+      fwrite(&slide->text_boxes[i].y, 2, 1, file);
+      fwrite(&slide->text_boxes[i].w, 2, 1, file);
+      fwrite(&slide->text_boxes[i].h, 2, 1, file);
+
+      unsigned short bold_and_count = (slide->text_boxes[i].bold ? 0x200 : 0) | (strlen(slide->text_boxes[i].text) & 0x1FF);
+      fwrite(&bold_and_count, 2, 1, file);
+
+      fwrite(slide->text_boxes[i].text, 1, strlen(slide->text_boxes[i].text), file);
+    }
+
+    slide = slide->next_slide;
+  }
+
+  fclose(file);
+  return 0;
+}
+
+int load(Program *prog, const char *file_name) {
+  FILE *file = fopen(file_name, "rb");
+  if (file == NULL)
+    return -1;
+
+  unsigned char signature[3];
+  fread(signature, 1, 3, file);
+  if (!(signature[0] == 0xC3 && signature[1] == 0xE7 && signature[2] == 0x2B)) {
+    fclose(file);
+    return -1;
+  }
+
+  free_program(prog);
+  setup_program(prog);
+  
+  fread(&prog->slide_count, 2, 1, file);
+  
+  Slide *slide = prog->first_slide;
+  for (int i = 1; i < prog->slide_count; i++) {
+    slide->next_slide = (Slide *)malloc(sizeof *slide->next_slide);
+    setup_slide(slide->next_slide, i, NULL);
+    slide = slide->next_slide;
+  }
+
+  slide = prog->first_slide;
+  while (slide != NULL) {
+    fread(&slide->text_box_count, 1, 1, file);
+    for (int i = 0; i < slide->text_box_count; i++) {
+      slide->text_boxes[i] = (TextBox){};
+      fread(&slide->text_boxes[i].x, 2, 1, file);
+      fread(&slide->text_boxes[i].y, 2, 1, file);
+      fread(&slide->text_boxes[i].w, 2, 1, file);
+      fread(&slide->text_boxes[i].h, 2, 1, file);
+
+      unsigned short bold_and_count;
+      fread(&bold_and_count, 2, 1, file);
+      slide->text_boxes[i].bold = bold_and_count & 0x200;
+      
+      fread(slide->text_boxes[i].text, 1, bold_and_count & 0x1FF, file);
+      slide->text_boxes[i].text[bold_and_count & 0x1FF] = '\0';
+    }
+
+    slide = slide->next_slide;
+  }
+
+  return 0;
+}
+
 void setup_slide(Slide *slide, int index, Slide *next_slide) {
   slide->text_boxes = (TextBox *)malloc(8 * sizeof *slide->text_boxes);
   slide->index = index;
@@ -173,7 +252,7 @@ void setup_slide(Slide *slide, int index, Slide *next_slide) {
   slide->active_box_index = 0;
 }
 void setup_program(Program *prog) {
-  *prog = (Program){NULL, (Slide *)malloc(sizeof *prog->first_slide), 1, false};
+  *prog = (Program){NULL, (Slide *)malloc(sizeof *prog->first_slide), 1, false, false, false, false};
   setup_slide(prog->first_slide, 0, NULL);
   prog->active_slide = prog->first_slide;
 }

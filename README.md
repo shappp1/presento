@@ -14,6 +14,12 @@ Just run make. Will be built to build/main (or build/main.exe on windows)
 NOTE: I haven't tested this on windows yet; there will probably be errors with missing DLLs.
 
 ## Implemented Controls
+### Program Operation
+- Ctrl+P - start slideshow from current slide
+- Ctrl+Shift+P - start slideshow from first slide
+- Ctrl+S - save
+- Ctrl+L - load
+
 ### Slide Operation
 - PgUp - go to previous slide
 - PgDn - go to next slide
@@ -33,11 +39,9 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 *Holding Shift will speed up operation
 
 ### Slideshow Operation
-- Ctrl+P - start slideshow from current slide
-- Ctrl+Shift+P - start slideshow from first slide
-- Left (during slideshow) - go back one slide
-- Right/Space (during slideshow) - go forward one slide
-- Esc (during slideshow) - end slideshow
+- Left Arrow - go back one slide
+- Right Arrow/Space - go forward one slide
+- Esc - end slideshow
 
 ## Features
 ### Required Features
@@ -49,7 +53,7 @@ NOTE: I haven't tested this on windows yet; there will probably be errors with m
 - [x] Adding slides
 - [x] Deleting slides
 - [x] Slideshow mode (button for start from beginning and start from current slide)
-- [ ] Saving and loading files
+- [x] Saving and loading files
 
 ### Extra Features (if time)
 - [ ] Changing slide background colour (probably really easy)
