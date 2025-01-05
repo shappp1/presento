@@ -46,7 +46,7 @@ int setup_ttf(TTF_Font **regular, TTF_Font **bold, TTF_Font **regular_ss, TTF_Fo
 }
 
 int write_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color color, int x, int y) {
-  SDL_Surface *surface = TTF_RenderText_Blended(font, text, color);
+  SDL_Surface *surface = TTF_RenderUTF8_Blended(font, text, color);
   if (surface == NULL) {
     return -1;
   }
@@ -65,7 +65,7 @@ int write_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Col
   return 0;
 }
 int write_text_wrapped(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color color, unsigned int wrap_length, int x, int y) {
-  SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(font, text, color, wrap_length);
+  SDL_Surface *surface = TTF_RenderUTF8_Blended_Wrapped(font, text, color, wrap_length);
   if (surface == NULL) {
     return -1;
   }

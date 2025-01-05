@@ -11,8 +11,6 @@ SDL2_ttf
 ### Build
 Just run make. Will be built to build/main (or build/main.exe on windows)
 
-NOTE: I haven't tested this on windows yet; there will probably be errors with missing DLLs.
-
 ## Implemented Controls
 ### Program Operation
 - Ctrl+P - start slideshow from current slide

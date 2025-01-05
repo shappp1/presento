@@ -181,7 +181,7 @@ int save(Program *prog, const char *file_name) {
       fwrite(&slide->text_boxes[i].w, 2, 1, file);
       fwrite(&slide->text_boxes[i].h, 2, 1, file);
 
-      unsigned short bold_and_count = (slide->text_boxes[i].bold ? 0x200 : 0) | (strlen(slide->text_boxes[i].text) & 0x1FF);
+      unsigned short bold_and_count = (slide->text_boxes[i].bold ? 0x8000 : 0) | strlen(slide->text_boxes[i].text);
       fwrite(&bold_and_count, 2, 1, file);
 
       fwrite(slide->text_boxes[i].text, 1, strlen(slide->text_boxes[i].text), file);
@@ -230,10 +230,10 @@ int load(Program *prog, const char *file_name) {
 
       unsigned short bold_and_count;
       fread(&bold_and_count, 2, 1, file);
-      slide->text_boxes[i].bold = bold_and_count & 0x200;
+      slide->text_boxes[i].bold = bold_and_count & 0x8000;
       
-      fread(slide->text_boxes[i].text, 1, bold_and_count & 0x1FF, file);
-      slide->text_boxes[i].text[bold_and_count & 0x1FF] = '\0';
+      fread(slide->text_boxes[i].text, 1, bold_and_count & 0x7FFF, file);
+      slide->text_boxes[i].text[bold_and_count & 0x7FFF] = '\0';
     }
 
     slide = slide->next_slide;
