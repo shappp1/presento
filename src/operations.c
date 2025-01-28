@@ -252,7 +252,7 @@ void setup_slide(Slide *slide, int index, Slide *next_slide) {
   slide->active_box_index = 0;
 }
 void setup_program(Program *prog) {
-  *prog = (Program){NULL, (Slide *)malloc(sizeof *prog->first_slide), 1, false, false, false, false};
+  *prog = (Program){NULL, (Slide *)malloc(sizeof *prog->first_slide), 1, false, false, false, false, 0, 0};
   setup_slide(prog->first_slide, 0, NULL);
   prog->active_slide = prog->first_slide;
 }

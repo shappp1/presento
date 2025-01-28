@@ -45,6 +45,7 @@ typedef struct Program {
   bool slideshow_mode;
   bool must_save;
   bool must_load;
+  int x_off, y_off;
 } Program;
 
 #endif

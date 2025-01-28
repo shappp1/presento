@@ -10,7 +10,7 @@
 
 #define ACTIVE_TEXT_BOX(prog) (prog).active_slide->text_boxes[(prog).active_slide->active_box_index]
 
-void handle_events(Program *prog, char *path);
+void handle_events(Program *prog, SDL_Window *window, char *path);
 
 int main(int argc, char** argv) {
   // Will add error handlers for these later
@@ -45,15 +45,18 @@ int main(int argc, char** argv) {
   while (!program.should_quit) {
     start_time = SDL_GetTicks64();
     
-    handle_events(&program, path);
+    handle_events(&program, window, path);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(renderer);
 
     if (program.slideshow_mode) {
       SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-      SDL_RenderClear(renderer);
+      SDL_RenderFillRect(renderer, &(SDL_Rect){program.x_off, program.y_off, WINDOW_WIDTH, WINDOW_HEIGHT});
 
       for (int i = 0; i < program.active_slide->text_box_count; i++) {
         if (strlen(program.active_slide->text_boxes[i].text)) { // if textbox not empty
-          write_text_wrapped(renderer, program.active_slide->text_boxes[i].bold ? bold_font_ss : regular_font_ss, program.active_slide->text_boxes[i].text, BLACK, program.active_slide->text_boxes[i].w * SLIDESHOW_SCALE, program.active_slide->text_boxes[i].x * SLIDESHOW_SCALE, program.active_slide->text_boxes[i].y *SLIDESHOW_SCALE);
+          write_text_wrapped(renderer, program.active_slide->text_boxes[i].bold ? bold_font_ss : regular_font_ss, program.active_slide->text_boxes[i].text, BLACK, program.active_slide->text_boxes[i].w * SLIDESHOW_SCALE, program.active_slide->text_boxes[i].x * SLIDESHOW_SCALE + program.x_off, program.active_slide->text_boxes[i].y * SLIDESHOW_SCALE + program.y_off);
         }
       }
     } else {
@@ -117,11 +120,18 @@ int main(int argc, char** argv) {
   return EXIT_SUCCESS;
 }
 
-void handle_events(Program *prog, char *path) {
+void handle_events(Program *prog, SDL_Window *window, char *path) {
   SDL_Event ev;
   while (SDL_PollEvent(&ev)) {
   if (ev.type == SDL_QUIT) {
     prog->should_quit = true;
+  } else if (ev.type == SDL_WINDOWEVENT) {
+    if (ev.window.event = SDL_WINDOWEVENT_RESIZED) {
+      int w, h;
+      SDL_GetWindowSize(window, &w, &h);
+      prog->x_off = (w > WINDOW_WIDTH) ? (w - WINDOW_WIDTH) >> 1 : 0;
+      prog->y_off = (h > WINDOW_HEIGHT) ? (h - WINDOW_HEIGHT) >> 1 : 0;
+    }
   } else if (ev.type == SDL_KEYDOWN) {
   if (prog->must_save || prog->must_load) {
   switch (ev.key.keysym.sym) {
@@ -149,6 +159,7 @@ void handle_events(Program *prog, char *path) {
       break;
     case SDLK_ESCAPE:
       prog->slideshow_mode = false;
+      SDL_SetWindowFullscreen(window, 0);
       break;
   }
   } else {
@@ -170,6 +181,7 @@ void handle_events(Program *prog, char *path) {
       if (ev.key.keysym.mod & KMOD_SHIFT)
         prog->active_slide = prog->first_slide;
       prog->slideshow_mode = true;
+      SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
       break;
     case SDLK_t:
       new_text_box(prog->active_slide, false);
